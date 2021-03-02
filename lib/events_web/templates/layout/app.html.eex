@@ -12,9 +12,27 @@
     <% # Contents copied from lecture notes, see the following for more info %>
     <% # https://github.com/NatTuck/scratch-2021-01/blob/master/notes-4550/11-photoblog/notes.md %>
     <div role="main" class="container">
-      <%= if function_exported?(Routes, :live_dashboard_path, 2) do %>
-        <p><%= link "Live Dashboard", to: Routes.live_dashboard_path(@conn, :home) %></li>
-      <% end %>
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="#">Events</a>
+        <% # Example from bootstrap docs, https://getbootstrap.com/docs/4.6/components/navbar/#nav %>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav">
+            <%= if function_exported?(Routes, :live_dashboard_path, 2) do %>
+              <li class="nav-item">
+                <%= link "Live Dashboard", to: Routes.live_dashboard_path(@conn, :home), class: "nav-link" %>
+              </li>
+            <% end %>
+          </ul>
+          <ul class="navbar-nav ml-auto">
+            <li class="nav-item">
+              <%= link "Register", to: Routes.user_path(@conn, :new), class: "nav-link" %>
+            </li>
+          </ul>
+        </div>
+      </nav>
 
       <%= if get_flash(@conn, :info) do %>
         <p class="alert alert-info" role="alert"><%= get_flash(@conn, :info) %></p>

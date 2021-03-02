@@ -13,3 +13,9 @@ import "../css/app.scss"
 //     import socket from "./socket"
 //
 import "phoenix_html"
+
+// Setup from lecture notes, see
+// https://github.com/NatTuck/scratch-2021-01/blob/master/notes-4550/10-multi/notes.md
+import jQuery from 'jquery';
+window.jQuery = window.$ = jQuery; // Bootstrap requires a global "$" object.
+import "bootstrap";
