@@ -29,6 +29,11 @@ defmodule Events.UsersTest do
       assert Users.get_user!(user.id) == user
     end
 
+    test "get_user_by_email/1 returns the user with given email" do
+      user = user_fixture()
+      assert Users.get_user_by_email("email@example.com") == user
+    end
+
     test "create_user/1 with valid data creates a user" do
       assert {:ok, %User{} = user} = Users.create_user(@valid_attrs)
       assert user.email == "email@example.com"
