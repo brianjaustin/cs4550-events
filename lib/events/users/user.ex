@@ -5,6 +5,8 @@ defmodule Events.Users.User do
   schema "users" do
     field :email, :string
     field :name, :string
+    has_many :events, Events.Core.Event,
+      foreign_key: :organizer_id
 
     timestamps()
   end
