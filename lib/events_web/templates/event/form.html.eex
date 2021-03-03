@@ -44,6 +44,7 @@
     </div>
 
     <div class="form-group">
+      <%= label fp, :delete %>
       <%= checkbox fp, :delete, class: "hidden-xs-up delete-checkbox" %>
     </div>
   <% end %>

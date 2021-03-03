@@ -56,7 +56,7 @@ defmodule EventsWeb.EventController do
   end
 
   defp stringify_participants({yes, maybe, no, unknown}) do
-    "#{yes} yes, #{no} no, #{unknown} no response"
+    "#{yes} yes, #{maybe} maybe, #{no} no, #{unknown} no response"
   end
 
   def edit(conn, %{"id" => id}) do
