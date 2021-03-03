@@ -4,8 +4,8 @@ defmodule Events.Core.EventParticipant do
 
   @primary_key false
   schema "event_participant" do
-    belongs_to :user, Events.Users.User, primary_key: true
     belongs_to :event, Events.Core.Event, primary_key: true
+    field :email, :string, primary_key: true
     field :comments, :string
     field :status, Ecto.Enum, values: [:yes, :maybe, :no, :unknown]
 
@@ -15,12 +15,13 @@ defmodule Events.Core.EventParticipant do
   @doc false
   def changeset(event_participant, attrs) do
     event_participant
-    |> cast(attrs, [:user, :event, :status, :comments])
-    |> validate_required([:user, :event, :status])
-    |> foreign_key_constraint(:user_id)
+    |> cast(attrs, [:event_id, :email, :status, :comments])
+    |> validate_required([:event_id, :email, :status])
+    # Python Regex from http://emailregex.com/
+    |> validate_format(:email, ~r/^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/)
     |> foreign_key_constraint(:event_id)
-    |> unique_constraint([:user, :event],
+    |> unique_constraint([:event_id, :email],
       name: :user_id_event_id_unique_index,
-      message: "Already responded for event")
+      message: "Already invited to event")
   end
 end
