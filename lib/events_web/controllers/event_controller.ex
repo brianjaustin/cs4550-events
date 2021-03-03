@@ -3,9 +3,11 @@ defmodule EventsWeb.EventController do
 
   alias Events.Core
   alias Events.Core.Event
+  alias Events.Repo
 
   def index(conn, _params) do
     events = Core.list_events()
+    |> Repo.preload(:organizer)
     render(conn, "index.html", events: events)
   end
 
@@ -28,6 +30,7 @@ defmodule EventsWeb.EventController do
 
   def show(conn, %{"id" => id}) do
     event = Core.get_event!(id)
+    |> Repo.preload(:organizer)
     render(conn, "show.html", event: event)
   end
 

@@ -3,6 +3,11 @@
 <ul>
 
   <li>
+    <strong>Organizer:</strong>
+    <%= @event.organizer.name %> &lt;<%= @event.organizer.email %>&gt;
+  </li>
+
+  <li>
     <strong>Name:</strong>
     <%= @event.name %>
   </li>

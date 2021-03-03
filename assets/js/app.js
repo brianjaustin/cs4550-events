@@ -19,3 +19,12 @@ import "phoenix_html"
 import jQuery from 'jquery';
 window.jQuery = window.$ = jQuery; // Bootstrap requires a global "$" object.
 import "bootstrap";
+
+// Setup flatpickr datetime fields
+import flatpickr from 'flatpickr';
+
+window.addEventListener('load', () => {
+  flatpickr('.flatpickr-datetime', {
+    enableTime: true,
+  });
+});
