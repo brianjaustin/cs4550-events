@@ -15,7 +15,7 @@
     <tr>
       <td><%= event.name %></td>
       <td><%= event.date %></td>
-      <td><%= event.organizer.name %></td>
+      <td><%= event.organizer.name %> &lt;<%= event.organizer.email %>&gt;</td>
 
       <td>
         <span><%= link "Show", to: Routes.event_path(@conn, :show, event) %></span>

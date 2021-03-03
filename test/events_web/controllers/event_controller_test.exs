@@ -8,9 +8,14 @@ defmodule EventsWeb.EventControllerTest do
   @update_attrs %{date: ~N[2011-05-18 15:01:01], description: "some updated description", name: "some updated name"}
   @invalid_attrs %{date: nil, description: nil, name: nil}
 
-  def fixture(:event) do
+  def fixture(:user) do
     {:ok, user} = %{email: "email@example.com", name: "some name"}
     |> Users.create_user()
+    user
+  end
+
+  def fixture(:event) do
+    user = fixture(:user)
 
     {:ok, event} = @create_attrs
     |> Map.put(:organizer_id, user.id)
@@ -33,8 +38,11 @@ defmodule EventsWeb.EventControllerTest do
   end
 
   describe "create event" do
-    test "redirects to show when data is valid", %{conn: conn} do
-      conn = post(conn, Routes.event_path(conn, :create), event: @create_attrs)
+    setup [:create_user]
+
+    test "redirects to show when data is valid", %{conn: conn, user: user} do
+      params = Map.put(@create_attrs, :organizer_id, user.id)
+      conn = post(conn, Routes.event_path(conn, :create), event: params)
 
       assert %{id: id} = redirected_params(conn)
       assert redirected_to(conn) == Routes.event_path(conn, :show, id)
@@ -43,7 +51,7 @@ defmodule EventsWeb.EventControllerTest do
       assert html_response(conn, 200) =~ "Show Event"
     end
 
-    test "renders errors when data is invalid", %{conn: conn} do
+    test "renders errors when data is invalid", %{conn: conn, user: _user} do
       conn = post(conn, Routes.event_path(conn, :create), event: @invalid_attrs)
       assert html_response(conn, 200) =~ "New Event"
     end
@@ -90,5 +98,10 @@ defmodule EventsWeb.EventControllerTest do
   defp create_event(_) do
     event = fixture(:event)
     %{event: event}
+  end
+
+  defp create_user(_) do
+    user = fixture(:user)
+    %{user: user}
   end
 end

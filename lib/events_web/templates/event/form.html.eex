@@ -7,7 +7,13 @@
 
   <div class="form-group">
     <%= label f, :organizer_id %>
-    <%= text_input f, :organizer_id, class: "form-control" %>
+    <%= if assigns[:current_user] && !assigns[:event] do %>
+      <%= select f, :organizer_id, assigns[:organizers] || [],
+      selected: @current_user.id, class: "form-control" %>
+    <% else %>
+      <%= select f, :organizer_id, assigns[:organizers] || [],
+      prompt: "Choose organizer email", class: "form-control" %>
+    <% end %>
     <%= error_tag f, :name %>
   </div>
 

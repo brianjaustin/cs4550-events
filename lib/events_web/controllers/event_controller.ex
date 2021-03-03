@@ -3,6 +3,7 @@ defmodule EventsWeb.EventController do
 
   alias Events.Core
   alias Events.Core.Event
+  alias Events.Users
   alias Events.Repo
 
   def index(conn, _params) do
@@ -13,7 +14,9 @@ defmodule EventsWeb.EventController do
 
   def new(conn, _params) do
     changeset = Core.change_event(%Event{})
-    render(conn, "new.html", changeset: changeset)
+    organizers = Users.list_users()
+    |> Enum.map(&{&1.email, &1.id})
+    render(conn, "new.html", changeset: changeset, organizers: organizers)
   end
 
   def create(conn, %{"event" => event_params}) do
@@ -37,7 +40,10 @@ defmodule EventsWeb.EventController do
   def edit(conn, %{"id" => id}) do
     event = Core.get_event!(id)
     changeset = Core.change_event(event)
-    render(conn, "edit.html", event: event, changeset: changeset)
+    organizers = Users.list_users()
+    |> Enum.map(&{&1.email, &1.id})
+    render(conn, "edit.html", event: event, changeset: changeset,
+      organizers: organizers)
   end
 
   def update(conn, %{"id" => id, "event" => event_params}) do
