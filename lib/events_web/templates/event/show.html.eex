@@ -24,5 +24,32 @@
 
 </ul>
 
+<strong>Participants:</strong>
+<p><%= @participant_summary %></p>
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Email</th>
+      <th>Response</th>
+      <th>Comments</th>
+    </tr>
+  </thead>
+  <tbody>
+    <%= for participant <- @event.participants do %>
+      <tr>
+        <td><%= participant.email %></td>
+        <td>
+          <%= if participant.status == :unknown do %>
+            hasn't responded
+          <% else %>
+            <%= participant.status %>
+          <% end %>
+        </td>
+        <td><%= participant.comments %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
 <span><%= link "Edit", to: Routes.event_path(@conn, :edit, @event) %></span>
 <span><%= link "Back", to: Routes.event_path(@conn, :index) %></span>

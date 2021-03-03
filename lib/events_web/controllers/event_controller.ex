@@ -20,6 +20,9 @@ defmodule EventsWeb.EventController do
   end
 
   def create(conn, %{"event" => event_params}) do
+    organizers = Users.list_users()
+    |> Enum.map(&{&1.email, &1.id})
+
     case Core.create_event(event_params) do
       {:ok, event} ->
         conn
@@ -27,27 +30,51 @@ defmodule EventsWeb.EventController do
         |> redirect(to: Routes.event_path(conn, :show, event))
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        render(conn, "new.html", changeset: changeset)
+        render(conn, "new.html", changeset: changeset, organizers: organizers)
     end
   end
 
   def show(conn, %{"id" => id}) do
     event = Core.get_event!(id)
     |> Repo.preload(:organizer)
-    render(conn, "show.html", event: event)
+    |> Repo.preload(:participants)
+    participants = count_participants(event)
+    render(conn, "show.html", event: event, participant_summary: participants)
+  end
+
+  defp count_participants(event) do
+    event.participants
+    |> Enum.reduce({0, 0, 0, 0}, fn participant, {y, m, n, u} ->
+      case participant.status do
+        :yes -> {y + 1, m, n, u}
+        :maybe -> {y, m + 1, n, u}
+        :no -> {y, m, n + 1, u}
+        :unknown -> {y, m, n, u + 1}
+      end
+    end)
+    |> stringify_participants()
+  end
+
+  defp stringify_participants({yes, maybe, no, unknown}) do
+    "#{yes} yes, #{no} no, #{unknown} no response"
   end
 
   def edit(conn, %{"id" => id}) do
     event = Core.get_event!(id)
+    |> Repo.preload(:participants)
     changeset = Core.change_event(event)
     organizers = Users.list_users()
     |> Enum.map(&{&1.email, &1.id})
+
     render(conn, "edit.html", event: event, changeset: changeset,
       organizers: organizers)
   end
 
   def update(conn, %{"id" => id, "event" => event_params}) do
     event = Core.get_event!(id)
+    |> Repo.preload(:participants)
+    organizers = Users.list_users()
+    |> Enum.map(&{&1.email, &1.id})
 
     case Core.update_event(event, event_params) do
       {:ok, event} ->
@@ -56,7 +83,8 @@ defmodule EventsWeb.EventController do
         |> redirect(to: Routes.event_path(conn, :show, event))
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        render(conn, "edit.html", event: event, changeset: changeset)
+        render(conn, "edit.html", event: event,
+        changeset: changeset, organizers: organizers)
     end
   end
 

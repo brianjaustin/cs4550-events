@@ -8,10 +8,10 @@
   <div class="form-group">
     <%= label f, :organizer_id %>
     <%= if assigns[:current_user] && !assigns[:event] do %>
-      <%= select f, :organizer_id, assigns[:organizers] || [],
+      <%= select f, :organizer_id, @organizers,
       selected: @current_user.id, class: "form-control" %>
     <% else %>
-      <%= select f, :organizer_id, assigns[:organizers] || [],
+      <%= select f, :organizer_id, @organizers,
       prompt: "Choose organizer email", class: "form-control" %>
     <% end %>
     <%= error_tag f, :name %>
@@ -34,6 +34,19 @@
     <%= textarea f, :description, class: "form-control" %>
     <%= error_tag f, :description %>
   </div>
+
+  <%= inputs_for f, :participants,
+    [append: [EventParticipant.nested_changeset(%EventParticipant{}, %{})]], fn fp -> %>
+    <div class="form-group">
+      <%= label fp, :email %>
+      <%= email_input fp, :email, class: "form-control" %>
+      <%= error_tag fp, :email %>
+    </div>
+
+    <div class="form-group">
+      <%= checkbox fp, :delete, class: "hidden-xs-up delete-checkbox" %>
+    </div>
+  <% end %>
 
   <div>
     <%= submit "Save", class: "btn btn-primary" %>
