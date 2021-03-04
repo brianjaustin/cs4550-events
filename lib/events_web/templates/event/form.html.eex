@@ -35,20 +35,6 @@
     <%= error_tag f, :description %>
   </div>
 
-  <%= inputs_for f, :participants,
-    [append: [EventParticipant.nested_changeset(%EventParticipant{}, %{})]], fn fp -> %>
-    <div class="form-group">
-      <%= label fp, :email %>
-      <%= email_input fp, :email, class: "form-control" %>
-      <%= error_tag fp, :email %>
-    </div>
-
-    <div class="form-group">
-      <%= label fp, :delete %>
-      <%= checkbox fp, :delete, class: "hidden-xs-up delete-checkbox" %>
-    </div>
-  <% end %>
-
   <div>
     <%= submit "Save", class: "btn btn-primary" %>
   </div>
