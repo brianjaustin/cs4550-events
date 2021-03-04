@@ -1,5 +1,10 @@
 <div class="row">
   <div class="col">
-    TODO: content here
+    <h2>Welcome!</h2>
+    <p>Login above, or click the links below to get started.</p>
+    <ul>
+      <li><%= link "Create an event", to: Routes.event_path(@conn, :new) %></li>
+      <li><%= link "List events", to: Routes.event_path(@conn, :index)%></li>
+    </ul>
   </div>
 </div>
