@@ -30,6 +30,10 @@ defmodule EventsWeb.Router do
       patch "/:email", EventParticipantController, :update
       put "/:email", EventParticipantController, :update
       delete "/:email", EventParticipantController, :delete
+
+      # Routes for looking up invites
+      get "/", EventParticipantController, :lookup
+      post "/search", EventParticipantController, :search
     end
 
     resources "/session", SessionController,

@@ -116,6 +116,13 @@ defmodule Events.CoreTest do
         |> Repo.preload(:event)
     end
 
+    test "get_event_participant/1 gets participant with given id" do
+      participant = participant_fixture()
+      assert participant ==
+        Core.get_event_participant(participant.email, participant.event.id)
+        |> Repo.preload(:event)
+    end
+
     test "create_participant/1 with valid data creates a event" do
       event = event_fixture()
       attrs = Map.put(@valid_attrs, :event_id, event.id)

@@ -71,6 +71,23 @@ defmodule Events.Core do
   end
 
   @doc """
+  Gets a single event participant.
+
+  Returns nil if the EventParticipant does not exist.
+
+  ## Examples
+
+    iex> get_event_participant("foo@example.com", 123)
+    %EventParticipant{}
+
+    iex> get_event_participant("baz@bad.net", 456)
+    nil
+  """
+  def get_event_participant(email, event_id) do
+    Repo.one(from(EventParticipant, where: [email: ^email, event_id: ^event_id]))
+  end
+
+  @doc """
   Creates an event.
 
   ## Examples

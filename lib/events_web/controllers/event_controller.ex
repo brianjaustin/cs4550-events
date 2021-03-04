@@ -20,9 +20,6 @@ defmodule EventsWeb.EventController do
   end
 
   def create(conn, %{"event" => event_params}) do
-    organizers = Users.list_users()
-    |> Enum.map(&{&1.email, &1.id})
-
     case Core.create_event(event_params) do
       {:ok, event} ->
         conn
@@ -30,6 +27,8 @@ defmodule EventsWeb.EventController do
         |> redirect(to: Routes.event_path(conn, :show, event))
 
       {:error, %Ecto.Changeset{} = changeset} ->
+        organizers = Users.list_users()
+        |> Enum.map(&{&1.email, &1.id})
         render(conn, "new.html", changeset: changeset, organizers: organizers)
     end
   end
@@ -73,8 +72,6 @@ defmodule EventsWeb.EventController do
   def update(conn, %{"id" => id, "event" => event_params}) do
     event = Core.get_event!(id)
     |> Repo.preload(:participants)
-    organizers = Users.list_users()
-    |> Enum.map(&{&1.email, &1.id})
 
     case Core.update_event(event, event_params) do
       {:ok, event} ->
@@ -83,6 +80,8 @@ defmodule EventsWeb.EventController do
         |> redirect(to: Routes.event_path(conn, :show, event))
 
       {:error, %Ecto.Changeset{} = changeset} ->
+        organizers = Users.list_users()
+        |> Enum.map(&{&1.email, &1.id})
         render(conn, "edit.html", event: event,
         changeset: changeset, organizers: organizers)
     end

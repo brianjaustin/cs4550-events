@@ -1,5 +1,11 @@
 <h1>Show Event</h1>
 
+<div>
+  Send this link to event participants to respond:
+  <%= link EventsWeb.Endpoint.url() <> Routes.event_participant_path(@conn, :lookup, @event.id),
+    to: Routes.event_participant_path(@conn, :lookup, @event.id) %>
+</div>
+
 <ul>
 
   <li>
