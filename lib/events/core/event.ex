@@ -17,8 +17,5 @@ defmodule Events.Core.Event do
     event
     |> cast(attrs, [:name, :date, :description, :organizer_id])
     |> validate_required([:name, :date, :organizer_id])
-    |> cast_assoc(:participants,
-      with: &Events.Core.EventParticipant.nested_changeset/2,
-      required: false)
   end
 end
