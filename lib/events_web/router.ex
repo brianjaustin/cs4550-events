@@ -21,6 +21,17 @@ defmodule EventsWeb.Router do
     resources "/users", UserController
     resources "/events", EventController
 
+    # Event participants are a bit different,
+    # so we handle them by hand
+    scope "/events/:eventId/participants" do
+      get "/edit/:email", EventParticipantController, :edit
+      get "/new", EventParticipantController, :new
+      post "/", EventParticipantController, :create
+      patch "/:email", EventParticipantController, :update
+      put "/:email", EventParticipantController, :update
+      delete "/:email", EventParticipantController, :delete
+    end
+
     resources "/session", SessionController,
       only: [:create, :delete], singleton: true
   end

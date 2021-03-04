@@ -1,0 +1,25 @@
+<h1>Add Event Participant</h1>
+
+<%= form_for @changeset, Routes.event_participant_path(@conn, :create, @event.id),
+  fn f -> %>
+  <%= if @changeset.action do %>
+    <p class="alert alert-danger">
+      Oops, something went wrong! Please check the errors below.
+    </p>
+  <% end %>
+
+  <div class="form-group">
+    <p>Event: <%= @event.name %></p>
+  </div>
+
+  <div class="form-group">
+    <%= label f, :email %>
+    <%= email_input f, :email, class: "form-control", id: "participant_email" %>
+  </div>
+
+  <div>
+    <%= submit "Save", class: "btn btn-primary" %>
+  </div>
+<% end %>
+
+<span><%= link "Back", to: Routes.event_path(@conn, :show, @event.id) %></span>

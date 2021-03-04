@@ -26,12 +26,14 @@
 
 <strong>Participants:</strong>
 <p><%= @participant_summary %></p>
+<%= link "Add Participant", to: Routes.event_participant_path(@conn, :new, @event.id) %>
 <table class="table table-striped">
   <thead>
     <tr>
       <th>Email</th>
       <th>Response</th>
       <th>Comments</th>
+      <th></th>
     </tr>
   </thead>
   <tbody>
@@ -46,6 +48,15 @@
           <% end %>
         </td>
         <td><%= participant.comments %></td>
+        <td>
+          <%= link "Edit", to:
+            Routes.event_participant_path(@conn, :edit, @event.id, participant.email) %>
+        </td>
+        <td>
+          <%= link "Delete", to:
+            Routes.event_participant_path(@conn, :delete, @event.id, participant.email),
+            method: :delete, data: [confirm: "Are you sure?"] %>
+        </td>
       </tr>
     <% end %>
   </tbody>

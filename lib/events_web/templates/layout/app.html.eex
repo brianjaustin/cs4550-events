@@ -41,7 +41,7 @@
               <%= form_for @conn, Routes.session_path(@conn, :create),
               [class: "form-inline"], fn f -> %>
                 <%= email_input f, :email, class: "form-control mr-sm-2",
-                placeholder: "Email" %>
+                placeholder: "Email", id: "login_email" %>
                 <%= submit "Login", class: "btn btn-secondary my-2 my-sm-0" %>
               <% end %>
               <li class="nav-item">
