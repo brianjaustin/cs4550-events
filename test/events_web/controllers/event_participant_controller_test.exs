@@ -111,13 +111,27 @@ defmodule EventsWeb.EventParticipantControllerTest do
   describe "edit participant" do
     setup [:create_participant]
     
-    test "renders form for editing the chose participant",
+    test "renders form for editing the chosen participant",
       %{conn: conn, participant: participant} do
+      # Setup
+      {:ok, user} = Users.create_user(%{"email" => participant.email, "name" => "n"})
+
       conn = get(conn, Routes.event_participant_path(conn,
         :edit,
         participant.event.id,
         participant.email))
       assert html_response(conn, 200) =~ "Edit Participant"
+
+      # Cleanup
+      Users.delete_user(user)
+    end
+
+    test "redirects to registration for unregistered",
+      %{conn: conn, participant: p} do
+      conn = get(conn, Routes.event_participant_path(conn, :edit, p.event.id, p.email))
+
+      assert redirected_to(conn) == Routes.user_path(conn, :new,
+        next: Routes.event_participant_path(conn, :edit, p.event.id, p.email))
     end
   end
 
@@ -160,9 +174,8 @@ defmodule EventsWeb.EventParticipantControllerTest do
         Routes.event_participant_path(conn, :delete, event_id, participant.email))
       assert redirected_to(conn) == Routes.event_path(conn, :show, event_id)
 
-      assert_error_sent 404, fn ->
-        get(conn, Routes.event_participant_path(conn, :edit, event_id, participant.email))
-      end
+      conn = get(conn, Routes.event_path(conn, :show, event_id))
+      refute html_response(conn, 200) =~ participant.email
     end
   end
 

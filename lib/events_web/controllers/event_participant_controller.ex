@@ -3,6 +3,7 @@ defmodule EventsWeb.EventParticipantController do
 
   alias Events.Core
   alias Events.Core.EventParticipant
+  alias Events.Users
 
   def new(conn, %{"eventId" => event_id}) do
     event = Core.get_event!(event_id)
@@ -44,10 +45,17 @@ defmodule EventsWeb.EventParticipantController do
   end
 
   def edit(conn, %{"eventId" => event_id, "email" => email}) do
-    event = Core.get_event!(event_id)
-    participant = Core.get_event_participant!(email, event_id)
-    changeset = Core.change_event_participant(participant)
-    render(conn, "edit.html", participant: participant, event: event, changeset: changeset)
+    if Users.get_user_by_email(email) do
+      event = Core.get_event!(event_id)
+      participant = Core.get_event_participant!(email, event_id)
+      changeset = Core.change_event_participant(participant)
+      render(conn, "edit.html", participant: participant,
+        event: event, changeset: changeset)
+    else
+      conn
+      |> put_flash(:info, "Welcome new user! Please register to RSVP.")
+      |> redirect(to: Routes.user_path(conn, :new, next: conn.request_path))
+    end
   end
 
   def update(conn, %{"eventId" => event_id, "email" => email,

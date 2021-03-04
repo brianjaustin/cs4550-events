@@ -55,7 +55,7 @@
         </td>
         <td><%= participant.comments %></td>
         <td>
-          <%= link "Edit", to:
+          <%= link "RSVP", to:
             Routes.event_participant_path(@conn, :edit, @event.id, participant.email) %>
         </td>
         <td>
