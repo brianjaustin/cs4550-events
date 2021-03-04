@@ -15,6 +15,7 @@
   <div class="form-group">
     <%= label f, :email %>
     <%= email_input f, :email, class: "form-control", id: "participant_email" %>
+    <%= error_tag f, :email %>
   </div>
 
   <div>

@@ -62,7 +62,7 @@ defmodule EventsWeb.EventParticipantController do
 
       {:error, %Ecto.Changeset{} = changeset} ->
         event = Core.get_event!(event_id)
-        render(conn, "edit.html", event: event, changeset: changeset)
+        render(conn, "edit.html", participant: participant, event: event, changeset: changeset)
     end
   end
 
