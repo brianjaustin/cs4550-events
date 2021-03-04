@@ -7,6 +7,9 @@ export PORT=4796
 export NODEBIN=`pwd`/assets/node_modules/.bin
 export PATH="$PATH:$NODEBIN"
 
+DATABASE_URL=$(cat "$CFGD/postgres")
+export DATABASE_URL
+
 echo "Building..."
 
 mix local.hex --force
@@ -28,9 +31,7 @@ if [ ! -e "$CFGD/base" ]; then
 fi
 
 SECRET_KEY_BASE=$(cat "$CFGD/base")
-DATABASE_URL=$(cat "$CFGD/postgres")
 export SECRET_KEY_BASE
-export DATABASE_URL
 
 (cd assets && npm install)
 (cd assets && webpack --mode production)
