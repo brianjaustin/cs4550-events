@@ -18,8 +18,9 @@ defmodule EventsWeb.UserController do
     case Users.create_user(user_params) do
       {:ok, user} ->
         conn
+        |> put_session(:user_id, user.id)
         |> put_flash(:info, "User created successfully.")
-        |> redirect(to: Routes.user_path(conn, :show, user))
+        |> redirect(to: Routes.page_path(conn, :index))
 
       {:error, %Ecto.Changeset{} = changeset} ->
         render(conn, "new.html", changeset: changeset)
