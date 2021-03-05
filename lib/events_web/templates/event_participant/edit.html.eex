@@ -25,6 +25,12 @@
     <%= error_tag f, :status %>
   </div>
 
+  <div class="form-group">
+    <%= label f, :comments%>
+    <%= textarea f, :comments, class: "form-control" %>
+    <%= error_tag f, :comments %>
+  </div>
+
   <div>
     <%= submit "Save", class: "btn btn-primary" %>
   </div>

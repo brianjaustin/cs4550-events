@@ -30,8 +30,7 @@ defmodule EventsWeb.UserControllerTest do
     test "redirects to next when data is valid", %{conn: conn} do
       conn = post(conn,
         Routes.user_path(conn, :create),
-        user: @create_attrs,
-        next: Routes.page_path(conn, :index))
+        user: Map.put(@create_attrs, "next", Routes.page_path(conn, :index)))
       assert redirected_to(conn) == Routes.page_path(conn, :index)
     end
 

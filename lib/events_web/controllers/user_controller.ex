@@ -13,7 +13,7 @@ defmodule EventsWeb.UserController do
     changeset = Users.change_user(%User{})
     render(conn, "new.html",
       changeset: changeset,
-      next: Map.get(params, "next"))
+      next: Map.get(params, "next") || Routes.page_path(conn, :index))
   end
 
   def create(conn, %{"user" => user_params}) do
@@ -22,7 +22,7 @@ defmodule EventsWeb.UserController do
         conn
         |> put_session(:user_id, user.id)
         |> put_flash(:info, "User created successfully.")
-        |> redirect(to: Map.get(user_params, "next") || Routes.page_path(conn, :index))
+        |> redirect(to: Map.get(user_params, "next"))
 
       {:error, %Ecto.Changeset{} = changeset} ->
         render(conn, "new.html", changeset: changeset)
