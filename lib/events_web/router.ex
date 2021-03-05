@@ -18,8 +18,10 @@ defmodule EventsWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :index
-    resources "/users", UserController
     resources "/events", EventController
+
+    resources "/users", UserController
+    get "/users/:id/photo", UserController, :photo
 
     # Event participants are a bit different,
     # so we handle them by hand
@@ -38,6 +40,7 @@ defmodule EventsWeb.Router do
 
     resources "/session", SessionController,
       only: [:create, :delete], singleton: true
+
   end
 
   # Other scopes may use custom stacks.

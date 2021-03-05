@@ -1,0 +1,3 @@
+<%= if @user.photo_hash do %>
+  <img src="<%= Routes.user_path(@conn, :photo, @user) %>" alt="" />
+<% end %>

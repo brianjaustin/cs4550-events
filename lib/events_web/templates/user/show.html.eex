@@ -12,6 +12,13 @@
     <%= @user.email %>
   </li>
 
+  <%= if @user.photo_hash do %>
+    <li>
+      <strong>Profile Picture</strong><br>
+      <%= render "photo.html", assigns %>
+    </li>
+  <% end %>
+
 </ul>
 
 <span><%= link "Edit", to: Routes.user_path(@conn, :edit, @user) %></span>

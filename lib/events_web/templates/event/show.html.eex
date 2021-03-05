@@ -11,6 +11,7 @@
   <li>
     <strong>Organizer:</strong>
     <%= @event.organizer.name %> &lt;<%= @event.organizer.email %>&gt;
+    <%= render EventsWeb.UserView, "photo.html", Map.put(assigns, :user, @event.organizer) %>
   </li>
 
   <li>
@@ -37,6 +38,7 @@
   <thead>
     <tr>
       <th>Email</th>
+      <th>Photo</th>
       <th>Response</th>
       <th>Comments</th>
       <th></th>
@@ -46,6 +48,12 @@
     <%= for participant <- @event.participants do %>
       <tr>
         <td><%= participant.email %></td>
+        <td>
+          <%= with user when user != nil <- Users.get_user_by_email(participant.email) do %>
+            <%= render EventsWeb.UserView, "photo.html",
+            Map.put(assigns, :user, user) %>
+          <% end %>
+        </td>
         <td>
           <%= if participant.status == :unknown do %>
             hasn't responded
