@@ -41,4 +41,5 @@ echo "Generating release..."
 mix release --force --overwrite
 
 echo "Migrating database..."
+mix ecto.create
 mix ecto.migrate
