@@ -9,7 +9,7 @@ echo "Stopping old copy of app, if any..."
 
 _build/prod/rel/events/bin/events stop || true
 
-CFGD=$(readlink -f ~/.config/bulls)
+CFGD=$(readlink -f ~/.config/events)
 
 if [ ! -e "$CFGD/base" ]; then
     echo "run build first"
