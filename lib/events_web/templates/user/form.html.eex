@@ -23,9 +23,6 @@
     <%= error_tag f, :photo %>
   </div>
 
-  <% # This is a hack to get forwarding to the next page to work %>
-  <%= hidden_input f, :next, value: assigns[:next] %>
-
   <div>
     <%= submit "Save", class: "btn btn-primary" %>
   </div>

@@ -27,10 +27,8 @@ defmodule EventsWeb.UserControllerTest do
   end
 
   describe "create user" do
-    test "redirects to next when data is valid", %{conn: conn} do
-      conn = post(conn,
-        Routes.user_path(conn, :create),
-        user: Map.put(@create_attrs, "next", Routes.page_path(conn, :index)))
+    test "redirects to index when data is valid", %{conn: conn} do
+      conn = post(conn, Routes.user_path(conn, :create), user: @create_attrs)
       assert redirected_to(conn) == Routes.page_path(conn, :index)
     end
 
@@ -45,11 +43,8 @@ defmodule EventsWeb.UserControllerTest do
       upload = %Plug.Upload{path: "test/resources/mountains-1412683_640.png"}
       attrs = @create_attrs
       |> Map.put("photo", upload)
-      |> Map.put("next", Routes.page_path(conn, :index))
 
-      conn = post(conn,
-        Routes.user_path(conn, :create),
-        user: attrs)
+      conn = post(conn, Routes.user_path(conn, :create), user: attrs)
       assert redirected_to(conn) == Routes.page_path(conn, :index)
 
       # NB: this will fail if the image hash changes
