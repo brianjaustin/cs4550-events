@@ -52,6 +52,9 @@ defmodule EventsWeb.UserController do
     user_params = user_params
     |> Map.put("photo_hash", save_photo(upload))
 
+    # Delete the old profile picture
+    Photos.delete_photo(user.photo_hash)
+
     case Users.update_user(user, user_params) do
       {:ok, user} ->
         conn

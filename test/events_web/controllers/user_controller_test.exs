@@ -37,9 +37,25 @@ defmodule EventsWeb.UserControllerTest do
     test "renders errors when data is invalid", %{conn: conn} do
       conn = post(conn,
         Routes.user_path(conn, :create),
-        user: @invalid_attrs,
-        next: Routes.page_path(conn, :index))
+        user: @invalid_attrs)
       assert html_response(conn, 200) =~ "New User"
+    end
+
+    test "saves photo when provided", %{conn: conn} do
+      upload = %Plug.Upload{path: "test/resources/mountains-1412683_640.png"}
+      attrs = @create_attrs
+      |> Map.put("photo", upload)
+      |> Map.put("next", Routes.page_path(conn, :index))
+
+      conn = post(conn,
+        Routes.user_path(conn, :create),
+        user: attrs)
+      assert redirected_to(conn) == Routes.page_path(conn, :index)
+
+      # NB: this will fail if the image hash changes
+      path = "~/.local/data/events/8e/fd78f3bc3891b288e83815c35cfdf0/photo.jpg"
+      |> Path.expand()
+      assert File.exists?(path)
     end
   end
 
@@ -66,6 +82,33 @@ defmodule EventsWeb.UserControllerTest do
     test "renders errors when data is invalid", %{conn: conn, user: user} do
       conn = put(conn, Routes.user_path(conn, :update, user), user: @invalid_attrs)
       assert html_response(conn, 200) =~ "Edit User"
+    end
+
+    test "saves photo when provided", %{conn: conn, user: user} do
+      upload = %Plug.Upload{path: "test/resources/mountains-1412683_640.png"}
+      attrs = @create_attrs
+      |> Map.put("photo", upload)
+
+      conn = put(conn, Routes.user_path(conn, :update, user), user: attrs)
+      assert redirected_to(conn) == Routes.user_path(conn, :show, user)
+
+      # NB: this will fail if the image hash changes
+      path = "~/.local/data/events/8e/fd78f3bc3891b288e83815c35cfdf0/photo.jpg"
+      |> Path.expand()
+      assert File.exists?(path)
+    end
+
+    test "deletes previous photo", %{conn: conn, user: user} do
+      {:ok, hash} = Events.Photos.save_photo("test/resources/mountains-1412683_640.png")
+      Users.update_user(user, %{"photo_hash" => hash})
+
+      conn = put(conn, Routes.user_path(conn, :update, user), user: @update_attrs)
+      assert redirected_to(conn) == Routes.user_path(conn, :show, user)
+
+      # NB: this will fail if the image hash changes
+      path = "~/.local/data/events/8e/fd78f3bc3891b288e83815c35cfdf0/photo.jpg"
+      |> Path.expand()
+      refute File.exists?(path)
     end
   end
 
