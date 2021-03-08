@@ -63,7 +63,9 @@ defmodule EventsWeb.UserControllerTest do
     setup [:create_user]
 
     test "renders form for editing chosen user", %{conn: conn, user: user} do
-      conn = get(conn, Routes.user_path(conn, :edit, user))
+      conn = conn
+      |> Plug.Test.init_test_session(user_id: user.id)
+      |> get(Routes.user_path(conn, :edit, user))
       assert html_response(conn, 200) =~ "Edit User"
     end
   end
@@ -72,7 +74,9 @@ defmodule EventsWeb.UserControllerTest do
     setup [:create_user]
 
     test "redirects when data is valid", %{conn: conn, user: user} do
-      conn = put(conn, Routes.user_path(conn, :update, user), user: @update_attrs)
+      conn = conn
+      |> Plug.Test.init_test_session(user_id: user.id)
+      |> put(Routes.user_path(conn, :update, user), user: @update_attrs)
       assert redirected_to(conn) == Routes.user_path(conn, :show, user)
 
       conn = get(conn, Routes.user_path(conn, :show, user))
@@ -80,7 +84,9 @@ defmodule EventsWeb.UserControllerTest do
     end
 
     test "renders errors when data is invalid", %{conn: conn, user: user} do
-      conn = put(conn, Routes.user_path(conn, :update, user), user: @invalid_attrs)
+      conn = conn
+      |> Plug.Test.init_test_session(user_id: user.id)
+      |> put(Routes.user_path(conn, :update, user), user: @invalid_attrs)
       assert html_response(conn, 200) =~ "Edit User"
     end
 
@@ -89,7 +95,9 @@ defmodule EventsWeb.UserControllerTest do
       attrs = @create_attrs
       |> Map.put("photo", upload)
 
-      conn = put(conn, Routes.user_path(conn, :update, user), user: attrs)
+      conn = conn
+      |> Plug.Test.init_test_session(user_id: user.id)
+      |> put(Routes.user_path(conn, :update, user), user: attrs)
       assert redirected_to(conn) == Routes.user_path(conn, :show, user)
 
       # NB: this will fail if the image hash changes
@@ -102,7 +110,9 @@ defmodule EventsWeb.UserControllerTest do
       {:ok, hash} = Events.Photos.save_photo("test/resources/mountains-1412683_640.png")
       Users.update_user(user, %{"photo_hash" => hash})
 
-      conn = put(conn, Routes.user_path(conn, :update, user), user: @update_attrs)
+      conn = conn
+      |> Plug.Test.init_test_session(user_id: user.id)
+      |> put(Routes.user_path(conn, :update, user), user: @update_attrs)
       assert redirected_to(conn) == Routes.user_path(conn, :show, user)
 
       # NB: this will fail if the image hash changes
@@ -116,7 +126,10 @@ defmodule EventsWeb.UserControllerTest do
     setup [:create_user]
 
     test "deletes chosen user", %{conn: conn, user: user} do
-      conn = delete(conn, Routes.user_path(conn, :delete, user))
+      conn = conn
+      |> Plug.Test.init_test_session(user_id: user.id)
+      |> delete(Routes.user_path(conn, :delete, user))
+
       assert redirected_to(conn) == Routes.user_path(conn, :index)
       assert_error_sent 404, fn ->
         get(conn, Routes.user_path(conn, :show, user))

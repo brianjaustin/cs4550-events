@@ -5,6 +5,39 @@ defmodule EventsWeb.UserController do
   alias Events.Users
   alias Events.Users.User
 
+  # Note: plugs/fetch code based on the code shown in lecture.
+  # See `RequireUser` module for details.
+  plug EventsWeb.Plugs.RequireUser when action in [
+    :edit, :update, :delete
+  ]
+
+  plug :fetch_user when action in [
+    :show, :photo, :edit, :update, :delete
+  ]
+  plug :require_self when action in [
+    :edit, :update, :delete
+  ]
+
+  def fetch_user(conn, _args) do
+    id = conn.params["id"]
+    user = Users.get_user!(id)
+    assign(conn, :user, user)
+  end
+
+  def require_self(conn, _params) do
+    current_user = conn.assigns[:current_user]
+    user = conn.assigns[:user]
+
+    if current_user.id == user.id do
+      conn
+    else
+      conn
+      |> put_flash(:error, "Cannot edit a different user")
+      |> redirect(to: Routes.user_path(conn, :index))
+      |> halt()
+    end
+  end
+
   def index(conn, _params) do
     users = Users.list_users()
     render(conn, "index.html", users: users)
@@ -34,19 +67,19 @@ defmodule EventsWeb.UserController do
     end
   end
 
-  def show(conn, %{"id" => id}) do
-    user = Users.get_user!(id)
+  def show(conn, %{"id" => _id}) do
+    user = conn.assigns[:user]
     render(conn, "show.html", user: user)
   end
 
-  def edit(conn, %{"id" => id}) do
-    user = Users.get_user!(id)
+  def edit(conn, %{"id" => _id}) do
+    user = conn.assigns[:user]
     changeset = Users.change_user(user)
     render(conn, "edit.html", user: user, changeset: changeset)
   end
 
-  def update(conn, %{"id" => id, "user" => user_params}) do
-    user = Users.get_user!(id)
+  def update(conn, %{"id" => _id, "user" => user_params}) do
+    user = conn.assigns[:user]
 
     upload = user_params["photo"]
     user_params = user_params
@@ -66,8 +99,8 @@ defmodule EventsWeb.UserController do
     end
   end
 
-  def delete(conn, %{"id" => id}) do
-    user = Users.get_user!(id)
+  def delete(conn, %{"id" => _id}) do
+    user = conn.assigns[:user]
     {:ok, _user} = Users.delete_user(user)
 
     conn
@@ -75,8 +108,8 @@ defmodule EventsWeb.UserController do
     |> redirect(to: Routes.user_path(conn, :index))
   end
 
-  def photo(conn, %{"id" => id}) do
-    user = Users.get_user!(id)
+  def photo(conn, %{"id" => _id}) do
+    user = conn.assigns[:user]
     {:ok, data} = Photos.load_photo(user.photo_hash)
 
     conn
