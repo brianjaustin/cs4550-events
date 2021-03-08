@@ -3,10 +3,61 @@ defmodule EventsWeb.EventParticipantController do
 
   alias Events.Core
   alias Events.Core.EventParticipant
-  alias Events.Users
+  alias Events.Repo
 
-  def new(conn, %{"eventId" => event_id}) do
-    event = Core.get_event!(event_id)
+  plug EventsWeb.Plugs.RequireUser when action in [
+    :new, :create, :lookup, :search, :edit, :update, :delete
+  ]
+
+  plug :fetch_event when action in [
+    :new, :create, :lookup, :search, :edit, :update, :delete
+  ]
+  plug :auth_organizer when action in [
+    :new, :create, :delete
+  ]
+  plug :auth_participant when action in [
+    :edit, :update
+  ]
+
+  def fetch_event(conn, _params) do
+    id = conn.params["eventId"]
+    event = Core.get_event!(id)
+    assign(conn, :event, event)
+  end
+
+  def auth_organizer(conn, _params) do
+    user = conn.assigns[:current_user]
+    event = conn.assigns[:event]
+    |> Repo.preload(:organizer)
+
+    if user.id == event.organizer.id do
+      conn
+    else
+      conn
+      |> put_flash(:error, "Only organizers of an event can change its invite list")
+      |> redirect(to: Routes.event_path(conn, :show, event.id))
+      |> halt()
+    end
+  end
+
+  def auth_participant(conn, _params) do
+    user = conn.assigns[:current_user]
+    event = conn.assigns[:event]
+    |> Repo.preload(:organizer)
+    participant = conn.params["email"]
+
+    if user.email == participant || user.id == event.organizer.id do
+      conn
+    else
+      conn
+      |> put_flash(:error, "Cannot RSVP for someone else")
+      |> redirect(to: Routes.event_path(conn, :show, event.id))
+      |> halt()
+    end
+  end
+
+  def new(conn, %{"eventId" => _event_id}) do
+    event = conn.assigns[:event]
     changeset = Core.change_event_participant(%EventParticipant{})
     render(conn, "new.html", changeset: changeset, event: event)
   end
@@ -22,40 +73,26 @@ defmodule EventsWeb.EventParticipantController do
         |> redirect(to: Routes.event_path(conn, :show, event_id))
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        event = Core.get_event!(event_id)
+        event = conn.assigns[:event]
         render(conn, "new.html", changeset: changeset, event: event)
     end
   end
 
-  def lookup(conn, %{"eventId" => event_id}) do
-    event = Core.get_event!(event_id)
-    render(conn, "lookup.html", event: event)
-  end
+  def lookup(conn, %{"eventId" => _event_id}) do
+    event = conn.assigns[:event]
+    user = conn.assigns[:current_user]
 
-  def search(conn, %{"eventId" => event_id, "email" => email}) do
-    case Core.get_event_participant(email, event_id) do
-      %EventParticipant{} ->
-        redirect(conn, to: Routes.event_participant_path(conn, :edit, event_id, email))
-      _ ->
-        event = Core.get_event!(event_id)
-        conn
-        |> put_flash(:error, "Participant not found with email #{email}")
-        |> render("lookup.html", event: event)
-    end
+    conn
+    |> assign(:email, user.email)
+    |> redirect(to: Routes.event_participant_path(conn, :edit, event.id, user.email))
   end
 
   def edit(conn, %{"eventId" => event_id, "email" => email}) do
-    if Users.get_user_by_email(email) do
-      event = Core.get_event!(event_id)
-      participant = Core.get_event_participant!(email, event_id)
-      changeset = Core.change_event_participant(participant)
-      render(conn, "edit.html", participant: participant,
-        event: event, changeset: changeset)
-    else
-      conn
-      |> put_flash(:info, "Welcome new user! Please register to RSVP.")
-      |> redirect(to: Routes.user_path(conn, :new, next: conn.request_path))
-    end
+    event = conn.assigns[:event]
+    participant = Core.get_event_participant!(email, event_id)
+    changeset = Core.change_event_participant(participant)
+    render(conn, "edit.html", participant: participant,
+      event: event, changeset: changeset)
   end
 
   def update(conn, %{"eventId" => event_id, "email" => email,
@@ -69,7 +106,7 @@ defmodule EventsWeb.EventParticipantController do
         |> redirect(to: Routes.event_path(conn, :show, event_id))
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        event = Core.get_event!(event_id)
+        event = conn.assigns[:event]
         render(conn, "edit.html", participant: participant, event: event, changeset: changeset)
     end
   end

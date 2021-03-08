@@ -3,8 +3,39 @@ defmodule EventsWeb.EventController do
 
   alias Events.Core
   alias Events.Core.Event
-  alias Events.Users
   alias Events.Repo
+
+  plug EventsWeb.Plugs.RequireUser when action in [
+    :new, :create, :edit, :update, :delete
+  ]
+
+  plug :fetch_event when action in [
+    :show, :edit, :update, :delete
+  ]
+  plug :require_organizer when action in [
+    :edit, :update, :delete
+  ]
+
+  def fetch_event(conn, _params) do
+    id = conn.params["id"]
+    event = Core.get_event!(id)
+    assign(conn, :event, event)
+  end
+
+  def require_organizer(conn, _params) do
+    user = conn.assigns[:current_user]
+    event = conn.assigns[:event]
+    |> Repo.preload(:organizer)
+
+    if user.id == event.organizer.id do
+      conn
+    else
+      conn
+      |> put_flash(:error, "Cannot edit an event belonging to someone else.")
+      |> redirect(to: Routes.event_path(conn, :show, event.id))
+      |> halt()
+    end
+  end
 
   def index(conn, _params) do
     events = Core.list_events()
@@ -14,12 +45,13 @@ defmodule EventsWeb.EventController do
 
   def new(conn, _params) do
     changeset = Core.change_event(%Event{})
-    organizers = Users.list_users()
-    |> Enum.map(&{&1.email, &1.id})
-    render(conn, "new.html", changeset: changeset, organizers: organizers)
+    render(conn, "new.html", changeset: changeset)
   end
 
   def create(conn, %{"event" => event_params}) do
+    event_params = event_params
+    |> Map.put("organizer_id", conn.assigns[:current_user].id)
+
     case Core.create_event(event_params) do
       {:ok, event} ->
         conn
@@ -27,14 +59,12 @@ defmodule EventsWeb.EventController do
         |> redirect(to: Routes.event_path(conn, :show, event))
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        organizers = Users.list_users()
-        |> Enum.map(&{&1.email, &1.id})
-        render(conn, "new.html", changeset: changeset, organizers: organizers)
+        render(conn, "new.html", changeset: changeset)
     end
   end
 
-  def show(conn, %{"id" => id}) do
-    event = Core.get_event!(id)
+  def show(conn, %{"id" => _id}) do
+    event = conn.assigns[:event]
     |> Repo.preload(:organizer)
     |> Repo.preload(:participants)
     participants = count_participants(event)
@@ -58,19 +88,16 @@ defmodule EventsWeb.EventController do
     "#{yes} yes, #{maybe} maybe, #{no} no, #{unknown} no response"
   end
 
-  def edit(conn, %{"id" => id}) do
-    event = Core.get_event!(id)
+  def edit(conn, %{"id" => _id}) do
+    event = conn.assigns[:event]
     |> Repo.preload(:participants)
     changeset = Core.change_event(event)
-    organizers = Users.list_users()
-    |> Enum.map(&{&1.email, &1.id})
 
-    render(conn, "edit.html", event: event, changeset: changeset,
-      organizers: organizers)
+    render(conn, "edit.html", event: event, changeset: changeset)
   end
 
-  def update(conn, %{"id" => id, "event" => event_params}) do
-    event = Core.get_event!(id)
+  def update(conn, %{"id" => _id, "event" => event_params}) do
+    event = conn.assigns[:event]
     |> Repo.preload(:participants)
 
     case Core.update_event(event, event_params) do
@@ -80,15 +107,13 @@ defmodule EventsWeb.EventController do
         |> redirect(to: Routes.event_path(conn, :show, event))
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        organizers = Users.list_users()
-        |> Enum.map(&{&1.email, &1.id})
         render(conn, "edit.html", event: event,
-        changeset: changeset, organizers: organizers)
+        changeset: changeset)
     end
   end
 
-  def delete(conn, %{"id" => id}) do
-    event = Core.get_event!(id)
+  def delete(conn, %{"id" => _id}) do
+    event = conn.assigns[:event]
     {:ok, _event} = Core.delete_event(event)
 
     conn

@@ -35,7 +35,6 @@ defmodule EventsWeb.Router do
 
       # Routes for looking up invites
       get "/", EventParticipantController, :lookup
-      post "/search", EventParticipantController, :search
     end
 
     resources "/session", SessionController,

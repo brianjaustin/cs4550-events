@@ -21,7 +21,9 @@ defmodule EventsWeb.EventParticipantControllerTest do
     {:ok, event} = %{date: ~N[2010-04-17 14:00:00], description: "some description", name: "some name"}
     |> Map.put(:organizer_id, user.id)
     |> Core.create_event()
+
     event
+    |> Repo.preload(:organizer)
   end
 
   def fixture(:participant) do
@@ -32,14 +34,16 @@ defmodule EventsWeb.EventParticipantControllerTest do
     |> Core.create_event_participant()
 
     participant
-    |> Repo.preload(:event)
+    |> Repo.preload(event: :organizer)
   end
 
   describe "new participant" do
     setup [:create_event]
 
     test "renders form for event", %{conn: conn, event: event} do
-      conn = get(conn, Routes.event_participant_path(conn, :new, event.id))
+      conn = conn
+      |> Plug.Test.init_test_session(user_id: event.organizer.id)
+      |> get(Routes.event_participant_path(conn, :new, event.id))
       response = html_response(conn, 200)
 
       assert response =~ "Add Event Participant"
@@ -54,8 +58,9 @@ defmodule EventsWeb.EventParticipantControllerTest do
     setup [:create_event]
 
     test "redirects to event details when input is valid", %{conn: conn, event: event} do
-      conn = post(conn,
-        Routes.event_participant_path(conn, :create, event.id),
+      conn = conn
+      |> Plug.Test.init_test_session(user_id: event.organizer.id)
+      |> post(Routes.event_participant_path(conn, :create, event.id),
         event_participant: @create_attrs)
 
       assert %{id: id} = redirected_params(conn)
@@ -68,43 +73,36 @@ defmodule EventsWeb.EventParticipantControllerTest do
     end
 
     test "renders error when email is invalid", %{conn: conn, event: event} do
-      conn = post(conn,
-        Routes.event_participant_path(conn, :create, event.id),
+      conn = conn
+      |> Plug.Test.init_test_session(user_id: event.organizer.id)
+      |> post(Routes.event_participant_path(conn, :create, event.id),
           event_participant: @invalid_attrs)
       assert html_response(conn, 200) =~ "Add Event Participant"
     end
   end
 
   describe "lookup participant" do
-    setup [:create_event]
-
-    test "renders form for existing event", %{conn: conn, event: event} do
-      conn = get(conn, Routes.event_participant_path(conn, :lookup, event.id))
-      assert html_response(conn, 200) =~ "Enter your email"
-    end
-
-    test "errors for non-existent event", %{conn: conn, event: _event} do
-      assert_error_sent 404, fn ->
-        get(conn, Routes.event_participant_path(conn, :lookup, -1))
-      end
-    end
-  end
-
-  describe "search participants" do
     setup [:create_participant]
 
-    test "redirects to edit for existing", %{conn: conn, participant: p} do
-      conn = post(conn,
-        Routes.event_participant_path(conn, :search, p.event.id),
-        email: p.email)
-      assert redirected_to(conn) ==
-        Routes.event_participant_path(conn, :edit, p.event.id, p.email)
+    test "redirects to edit for existing event", %{conn: conn, participant: p} do
+      # Setup
+      {:ok, user} = Users.create_user(%{"email" => p.email, "name" => "n"})
+
+      conn = conn
+      |> Plug.Test.init_test_session(user_id: user.id)
+      |> get(Routes.event_participant_path(conn, :lookup, p.event.id))
+      assert redirected_to(conn) == Routes.event_participant_path(conn, :edit, p.event.id, p.email)
+
+      # Cleanup
+      Users.delete_user(user)
     end
-    
-    test "displays error for nonexistent", %{conn: conn, participant: p} do
-      conn = post(conn,
-        Routes.event_participant_path(conn, :search, p.event.id, email: "bad-email"))
-      assert html_response(conn, 200) =~ "Participant not found with email bad-email"
+
+    test "errors for non-existent event", %{conn: conn, participant: p} do
+      assert_error_sent 404, fn ->
+        conn
+        |> Plug.Test.init_test_session(user_id: p.event.organizer.id)
+        |> get(Routes.event_participant_path(conn, :lookup, -1))
+      end
     end
   end
 
@@ -116,22 +114,13 @@ defmodule EventsWeb.EventParticipantControllerTest do
       # Setup
       {:ok, user} = Users.create_user(%{"email" => participant.email, "name" => "n"})
 
-      conn = get(conn, Routes.event_participant_path(conn,
-        :edit,
-        participant.event.id,
-        participant.email))
+      conn = conn
+      |> Plug.Test.init_test_session(user_id: user.id)
+      |> get(Routes.event_participant_path(conn, :edit, participant.event.id, participant.email))
       assert html_response(conn, 200) =~ "Edit Participant"
 
       # Cleanup
       Users.delete_user(user)
-    end
-
-    test "redirects to registration for unregistered",
-      %{conn: conn, participant: p} do
-      conn = get(conn, Routes.event_participant_path(conn, :edit, p.event.id, p.email))
-
-      assert redirected_to(conn) == Routes.user_path(conn, :new,
-        next: Routes.event_participant_path(conn, :edit, p.event.id, p.email))
     end
   end
 
@@ -141,8 +130,9 @@ defmodule EventsWeb.EventParticipantControllerTest do
     test "redirects to event when updates are valid",
       %{conn: conn, participant: participant} do
       event_id = participant.event.id
-      conn = put(conn,
-        Routes.event_participant_path(conn, :update, event_id, participant.email),
+      conn = conn
+      |> Plug.Test.init_test_session(user_id: participant.event.organizer.id)
+      |> put(Routes.event_participant_path(conn, :update, event_id, participant.email),
         event_participant: @update_attrs)
       assert redirected_to(conn) == Routes.event_path(conn, :show, event_id)
 
@@ -157,8 +147,9 @@ defmodule EventsWeb.EventParticipantControllerTest do
     test "renders error when data is invalid",
       %{conn: conn, participant: participant} do
         event_id = participant.event.id
-        conn = put(conn,
-        Routes.event_participant_path(conn, :update, event_id, participant.email),
+        conn = conn
+        |> Plug.Test.init_test_session(user_id: participant.event.organizer.id)
+        |> put(Routes.event_participant_path(conn, :update, event_id, participant.email),
           event_participant: @invalid_attrs)
         assert html_response(conn, 200) =~ "Edit Participant"
     end
@@ -169,12 +160,13 @@ defmodule EventsWeb.EventParticipantControllerTest do
 
     test "removes the chosen participant",
       %{conn: conn, participant: participant} do
-      event_id = participant.event.id
-      conn = delete(conn,
-        Routes.event_participant_path(conn, :delete, event_id, participant.email))
-      assert redirected_to(conn) == Routes.event_path(conn, :show, event_id)
+      event = participant.event
+      conn = conn
+      |> Plug.Test.init_test_session(user_id: event.organizer.id)
+      |> delete(Routes.event_participant_path(conn, :delete, event.id, participant.email))
+      assert redirected_to(conn) == Routes.event_path(conn, :show, event.id)
 
-      conn = get(conn, Routes.event_path(conn, :show, event_id))
+      conn = get(conn, Routes.event_path(conn, :show, event.id))
       refute html_response(conn, 200) =~ participant.email
     end
   end

@@ -27,7 +27,7 @@
             <% end %>
           </ul>
           <ul class="navbar-nav ml-auto">
-            <%= if @conn.assigns[:current_user] do %>
+            <%= if logged_in?(@conn) do %>
               <span class="navbar-text">
                 Logged in as <%= @current_user.name %> |
               </span>

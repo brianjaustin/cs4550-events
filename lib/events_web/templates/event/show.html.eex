@@ -33,7 +33,9 @@
 
 <strong>Participants:</strong>
 <p><%= @participant_summary %></p>
-<%= link "Add Participant", to: Routes.event_participant_path(@conn, :new, @event.id) %>
+<%= if current_user_is?(@conn, @event.organizer.id) do %>
+  <%= link "Add Participant", to: Routes.event_participant_path(@conn, :new, @event.id) %>
+<% end %>
 <table class="table table-striped">
   <thead>
     <tr>
@@ -63,18 +65,24 @@
         </td>
         <td><%= participant.comments %></td>
         <td>
-          <%= link "RSVP", to:
-            Routes.event_participant_path(@conn, :edit, @event.id, participant.email) %>
+          <%= if current_user_email?(@conn, participant.email) do %>
+            <%= link "RSVP", to:
+              Routes.event_participant_path(@conn, :edit, @event.id, participant.email) %>
+          <% end %>
         </td>
         <td>
-          <%= link "Delete", to:
-            Routes.event_participant_path(@conn, :delete, @event.id, participant.email),
-            method: :delete, data: [confirm: "Are you sure?"] %>
+          <%= if current_user_is?(@conn, @event.organizer.id) do %>
+            <%= link "Delete", to:
+              Routes.event_participant_path(@conn, :delete, @event.id, participant.email),
+              method: :delete, data: [confirm: "Are you sure?"] %>
+          <% end %>
         </td>
       </tr>
     <% end %>
   </tbody>
 </table>
 
-<span><%= link "Edit", to: Routes.event_path(@conn, :edit, @event) %></span>
+<%= if current_user_is?(@conn, @event.organizer.id) do %>
+  <span><%= link "Edit", to: Routes.event_path(@conn, :edit, @event) %></span>
+<% end %>
 <span><%= link "Back", to: Routes.event_path(@conn, :index) %></span>

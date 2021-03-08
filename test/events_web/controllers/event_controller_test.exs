@@ -2,6 +2,7 @@ defmodule EventsWeb.EventControllerTest do
   use EventsWeb.ConnCase
 
   alias Events.Core
+  alias Events.Repo
   alias Events.Users
 
   @create_attrs %{date: ~N[2010-04-17 14:00:00], description: "some description", name: "some name"}
@@ -31,8 +32,12 @@ defmodule EventsWeb.EventControllerTest do
   end
 
   describe "new event" do
-    test "renders form", %{conn: conn} do
-      conn = get(conn, Routes.event_path(conn, :new))
+    setup [:create_user]
+
+    test "renders form", %{conn: conn, user: user} do
+      conn = conn
+      |> Plug.Test.init_test_session(user_id: user.id)
+      |> get(Routes.event_path(conn, :new))
       assert html_response(conn, 200) =~ "New Event"
     end
   end
@@ -41,8 +46,9 @@ defmodule EventsWeb.EventControllerTest do
     setup [:create_user]
 
     test "redirects to show when data is valid", %{conn: conn, user: user} do
-      params = Map.put(@create_attrs, :organizer_id, user.id)
-      conn = post(conn, Routes.event_path(conn, :create), event: params)
+      conn = conn
+      |> Plug.Test.init_test_session(user_id: user.id)
+      |> post(Routes.event_path(conn, :create), event: @create_attrs)
 
       assert %{id: id} = redirected_params(conn)
       assert redirected_to(conn) == Routes.event_path(conn, :show, id)
@@ -51,8 +57,10 @@ defmodule EventsWeb.EventControllerTest do
       assert html_response(conn, 200) =~ "Show Event"
     end
 
-    test "renders errors when data is invalid", %{conn: conn, user: _user} do
-      conn = post(conn, Routes.event_path(conn, :create), event: @invalid_attrs)
+    test "renders errors when data is invalid", %{conn: conn, user: user} do
+      conn = conn
+      |> Plug.Test.init_test_session(user_id: user.id)
+      |> post(Routes.event_path(conn, :create), event: @invalid_attrs)
       assert html_response(conn, 200) =~ "New Event"
     end
   end
@@ -61,7 +69,9 @@ defmodule EventsWeb.EventControllerTest do
     setup [:create_event]
 
     test "renders form for editing chosen event", %{conn: conn, event: event} do
-      conn = get(conn, Routes.event_path(conn, :edit, event))
+      conn = conn
+      |> Plug.Test.init_test_session(user_id: event.organizer.id)
+      |> get(Routes.event_path(conn, :edit, event))
       assert html_response(conn, 200) =~ "Edit Event"
     end
   end
@@ -70,7 +80,9 @@ defmodule EventsWeb.EventControllerTest do
     setup [:create_event]
 
     test "redirects when data is valid", %{conn: conn, event: event} do
-      conn = put(conn, Routes.event_path(conn, :update, event), event: @update_attrs)
+      conn = conn
+      |> Plug.Test.init_test_session(user_id: event.organizer.id)
+      |> put(Routes.event_path(conn, :update, event), event: @update_attrs)
       assert redirected_to(conn) == Routes.event_path(conn, :show, event)
 
       conn = get(conn, Routes.event_path(conn, :show, event))
@@ -78,7 +90,9 @@ defmodule EventsWeb.EventControllerTest do
     end
 
     test "renders errors when data is invalid", %{conn: conn, event: event} do
-      conn = put(conn, Routes.event_path(conn, :update, event), event: @invalid_attrs)
+      conn = conn
+      |> Plug.Test.init_test_session(user_id: event.organizer.id)
+      |> put(Routes.event_path(conn, :update, event), event: @invalid_attrs)
       assert html_response(conn, 200) =~ "Edit Event"
     end
   end
@@ -87,7 +101,9 @@ defmodule EventsWeb.EventControllerTest do
     setup [:create_event]
 
     test "deletes chosen event", %{conn: conn, event: event} do
-      conn = delete(conn, Routes.event_path(conn, :delete, event))
+      conn = conn
+      |> Plug.Test.init_test_session(user_id: event.organizer.id)
+      |> delete(Routes.event_path(conn, :delete, event))
       assert redirected_to(conn) == Routes.event_path(conn, :index)
       assert_error_sent 404, fn ->
         get(conn, Routes.event_path(conn, :show, event))
@@ -97,6 +113,7 @@ defmodule EventsWeb.EventControllerTest do
 
   defp create_event(_) do
     event = fixture(:event)
+    |> Repo.preload(:organizer)
     %{event: event}
   end
 
