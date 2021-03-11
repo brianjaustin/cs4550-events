@@ -1,5 +1,5 @@
 
-Web Dev Spring 2021 HW07 Status
+Web Dev Spring 2021 HW08 Status
 
 Answer the following questions:
 
@@ -17,16 +17,13 @@ http://events.baustin-neu.site/
 
 
 4. Is your app functionality complete? If not, what's missing?
-My app is functionally complete.
+Yes.
 
 
 5. Is your app properly deployed? If not, what went wrong?
-My app is deployed.
+Yes.
 
 
-6. If you would like the deployment for an old homework to be reconsidered, what
-are the links to your Inkfish submission and deployed site?
-N/A
 
 
 And here's a list of tasks for grading comments. Just leave this here:
