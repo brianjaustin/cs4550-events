@@ -1,10 +1,15 @@
 <div class="row">
   <div class="col">
     <h2>Welcome!</h2>
-    <p>Login above, or click the links below to get started.</p>
-    <ul>
-      <li><%= link "Create an event", to: Routes.event_path(@conn, :new) %></li>
-      <li><%= link "List events", to: Routes.event_path(@conn, :index)%></li>
-    </ul>
+    <%= if logged_in?(@conn) do %>
+      <p>
+        Create an event to get started, or use the link you received
+        to RSVP to someone else's event.
+      </p>
+    <% else %>
+      <p>
+        Hello there, stranger! Login or register above to get started.
+      </p>
+    <% end %>
   </div>
 </div>

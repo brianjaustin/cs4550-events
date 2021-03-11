@@ -25,12 +25,23 @@
                 <%= link "Live Dashboard", to: Routes.live_dashboard_path(@conn, :home), class: "nav-link" %>
               </li>
             <% end %>
+            <%= if logged_in?(@conn) do %>
+              <li class="nav-item">
+                <%= link "Create Event", to: Routes.event_path(@conn, :new), class: "nav-link" %>
+              </li>
+            <% end %>
+            <li class="nav-item">
+              <%= link "Explore Events", to: Routes.event_path(@conn, :index), class: "nav-link" %>
+            </li>
           </ul>
           <ul class="navbar-nav ml-auto">
             <%= if logged_in?(@conn) do %>
               <span class="navbar-text">
-                Logged in as <%= @current_user.name %> |
+                Logged in as <%= @current_user.name %>
               </span>
+              <li class="nav-item">
+                <%= link "Edit Profile", to: Routes.user_path(@conn, :edit, @current_user), class: "nav-link" %>
+              </li>
               <li class="nav-item">
                 <%= link("Logout", to: Routes.session_path(@conn, :delete),
                 method: :delete, class: "nav-link") %>
